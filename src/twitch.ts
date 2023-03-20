@@ -36,11 +36,12 @@ function requestHeader(request: Request, header: string): string {
 }
 
 async function getHmacMessage(request: Request): Promise<ArrayBuffer> {
-    return stringBuffer(
-        requestHeader(request, RequestHeaders.MessageId) +
-        requestHeader(request, RequestHeaders.MessageTimestamp) +
-        await request.text()
-    );
+    return await new Blob([
+        requestHeader(request, RequestHeaders.MessageId),
+        requestHeader(request, RequestHeaders.MessageTimestamp),
+        await request.blob()
+    ])
+        .arrayBuffer();
 }
 
 export async function verifyRequest(request: Request, env: Env): Promise<boolean> {
