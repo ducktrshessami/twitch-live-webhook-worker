@@ -18,6 +18,11 @@ function stringBuffer(str: string): ArrayBuffer {
         .encode(str);
 }
 
+function hexBuffer(hex: string): ArrayBuffer {
+    const bytes = hex.match(/.{1,2}/g) ?? [];
+    return Uint8Array.from(bytes.map(byte => parseInt(byte, 16)));
+}
+
 async function getKey(env: Env): Promise<CryptoKey> {
     return await crypto.subtle.importKey(
         "raw",
@@ -52,7 +57,7 @@ export async function verifyRequest(request: Request, env: Env): Promise<boolean
     return await crypto.subtle.verify(
         "HMAC",
         key,
-        stringBuffer(requestHeader(request, RequestHeaders.MessageSignature)),
+        hexBuffer(requestHeader(request, RequestHeaders.MessageSignature)),
         message
     );
 }
