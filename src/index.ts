@@ -19,22 +19,18 @@ export default {
 		env: Env
 	): Promise<Response> {
 		const body = await request.blob();
-		if (await verifyRequest(request, body, env)) {
-			checkAge(request, env);
-			const json: BaseWebhookBody = JSON.parse(await body.text());
-			if (json.subscription.type === SubscriptionType.StreamOnline) {
-				switch (request.headers.get(RequestHeaders.MessageType)) {
-					case NotificationType.Notification: return await handleNotification(request, body);
-					case NotificationType.WebhookCallbackVerification: return handleChallenge(<WebhookCallbackVerificationBody>json);
-					default: return new Response(null, { status: 400 });
-				}
-			}
-			else {
-				return new Response(null, { status: 403 });
-			}
-		}
-		else {
+		if (!(await verifyRequest(request, body, env))) {
 			return new Response(null, { status: 401 });
+		}
+		checkAge(request, env);
+		const json: BaseWebhookBody = JSON.parse(await body.text());
+		if (json.subscription.type !== SubscriptionType.StreamOnline) {
+			return new Response(null, { status: 403 });
+		}
+		switch (request.headers.get(RequestHeaders.MessageType)) {
+			case NotificationType.Notification: return await handleNotification(request, body);
+			case NotificationType.WebhookCallbackVerification: return handleChallenge(<WebhookCallbackVerificationBody>json);
+			default: return new Response(null, { status: 400 });
 		}
 	},
 };
