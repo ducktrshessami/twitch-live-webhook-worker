@@ -1,4 +1,9 @@
 import { Env } from ".";
+import {
+    hexBuffer,
+    requestHeader,
+    stringBuffer
+} from "./utils";
 
 export enum RequestHeaders {
     MessageId = "twitch-eventsub-message-id",
@@ -16,16 +21,6 @@ export enum NotificationType {
     Revocation = "revocation"
 }
 
-function stringBuffer(str: string): ArrayBuffer {
-    return new TextEncoder()
-        .encode(str);
-}
-
-function hexBuffer(hex: string): ArrayBuffer {
-    const bytes = hex.match(/.{1,2}/g) ?? [];
-    return Uint8Array.from(bytes.map(byte => parseInt(byte, 16)));
-}
-
 async function getKey(env: Env): Promise<CryptoKey> {
     return await crypto.subtle.importKey(
         "raw",
@@ -37,10 +32,6 @@ async function getKey(env: Env): Promise<CryptoKey> {
         false,
         ["verify"]
     );
-}
-
-function requestHeader(request: Request, header: string): string {
-    return request.headers.get(header) ?? "";
 }
 
 async function getHmacMessage(request: Request, body: Blob): Promise<ArrayBuffer> {
