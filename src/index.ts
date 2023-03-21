@@ -1,7 +1,8 @@
 import {
 	NotificationType,
 	RequestHeaders,
-	verifyRequest
+	verifyRequest,
+	WebhookCallbackVerificationBody
 } from "./twitch";
 import { requestHeader } from "./utils";
 
@@ -18,8 +19,10 @@ export default {
 		const body = await request.blob();
 		if (await verifyRequest(request, body, env)) {
 			checkAge(request, env);
+			const json = JSON.parse(await body.text());
 			switch (request.headers.get(RequestHeaders.MessageType)) {
 				case NotificationType.Notification: return await handleNotification(request, body);
+				case NotificationType.WebhookCallbackVerification: return handleChallenge(json);
 				default: return new Response(null, { status: 400 });
 			}
 		}
@@ -41,4 +44,8 @@ function checkAge(request: Request, env: Env): void {
 async function handleNotification(request: Request, body: Blob): Promise<Response> {
 	// TODO: Forward notification
 	return new Response(null, { status: 204 });
+}
+
+function handleChallenge(body: WebhookCallbackVerificationBody): Response {
+	return new Response(body.challenge, { status: 200 });
 }
