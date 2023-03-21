@@ -2,9 +2,12 @@ import { Env } from ".";
 
 export enum RequestHeaders {
     MessageId = "twitch-eventsub-message-id",
-    MessageTimestamp = "twitch-eventsub-message-timestamp",
+    MessageRetry = "twitch-eventsub-message-retry",
+    MessageType = "twitch-eventsub-message-type",
     MessageSignature = "twitch-eventsub-message-signature",
-    MessageType = "twitch-eventsub-message-type"
+    MessageTimestamp = "twitch-eventsub-message-timestamp",
+    SubscriptionType = "twitch-eventsub-subscription-type",
+    SubscriptionVersion = "twitch-eventsub-subscription-version"
 }
 
 export enum NotificationType {
