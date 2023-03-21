@@ -47,5 +47,10 @@ async function handleNotification(request: Request, body: Blob): Promise<Respons
 }
 
 function handleChallenge(body: WebhookCallbackVerificationBody): Response {
-	return new Response(body.challenge, { status: 200 });
+	return new Response(body.challenge, {
+		status: 200,
+		headers: {
+			"Content-Type": body.challenge.length.toString()
+		}
+	});
 }
