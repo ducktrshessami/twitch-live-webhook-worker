@@ -1,5 +1,7 @@
 import { Env } from ".";
 
+const HMAC_PREFIX = "sha256=";
+
 export enum RequestHeaders {
     MessageId = "twitch-eventsub-message-id",
     MessageTimestamp = "twitch-eventsub-message-timestamp",
@@ -50,6 +52,7 @@ async function getHmacMessage(request: Request): Promise<ArrayBuffer> {
 }
 
 export async function verifyRequest(request: Request, env: Env): Promise<boolean> {
+    const signature = requestHeader(request, RequestHeaders.MessageSignature);
     const [key, message] = await Promise.all([
         getKey(env),
         getHmacMessage(request)
@@ -57,7 +60,7 @@ export async function verifyRequest(request: Request, env: Env): Promise<boolean
     return await crypto.subtle.verify(
         "HMAC",
         key,
-        hexBuffer(requestHeader(request, RequestHeaders.MessageSignature)),
+        hexBuffer(signature.startsWith(HMAC_PREFIX) ? signature.slice(HMAC_PREFIX.length) : signature),
         message
     );
 }
