@@ -1,4 +1,8 @@
-import { RequestHeaders, verifyRequest } from "./twitch";
+import {
+	NotificationType,
+	RequestHeaders,
+	verifyRequest
+} from "./twitch";
 import { requestHeader } from "./utils";
 
 export interface Env {
@@ -14,8 +18,14 @@ export default {
 		const body = await request.blob();
 		if (await verifyRequest(request, body, env)) {
 			checkAge(request, env);
+			switch (request.headers.get(RequestHeaders.MessageType)) {
+				case NotificationType.Notification: return await handleNotification(request, body);
+				default: return new Response(null, { status: 400 });
+			}
 		}
-		return new Response("Hello World!");
+		else {
+			return new Response(null, { status: 401 });
+		}
 	},
 };
 
@@ -26,4 +36,9 @@ function checkAge(request: Request, env: Env): void {
 	if (age > TWITCH_AGE_WARNING) {
 		// TODO: Age warning
 	}
+}
+
+async function handleNotification(request: Request, body: Blob): Promise<Response> {
+	// TODO: Forward notification
+	return new Response(null, { status: 204 });
 }
