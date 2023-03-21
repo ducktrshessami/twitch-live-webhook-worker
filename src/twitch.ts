@@ -131,7 +131,7 @@ export type Condition =
 
 export type Subscription<T extends Condition = Condition> = {
     id: string;
-    type: string;
+    type: `${SubscriptionType}`;
     version: string;
     status: string;
     cost: number;
