@@ -40,9 +40,12 @@ export default {
 
 function checkAge(request: Request, env: Env): void {
 	const TWITCH_AGE_WARNING = env.TWITCH_AGE_WARNING ? parseInt(env.TWITCH_AGE_WARNING) : 300000;
-	const timestamp = new Date(requestHeader(request, RequestHeaders.MessageTimestamp));
-	const age = Date.now() - timestamp.getTime();
+	const now = new Date();
+	const rawTimestamp = requestHeader(request, RequestHeaders.MessageTimestamp);
+	const timestamp = new Date(rawTimestamp);
+	const age = now.getTime() - timestamp.getTime();
 	if (age > TWITCH_AGE_WARNING) {
+		console.warn(`[${now.toISOString()}] Received request with timestamp older than ${TWITCH_AGE_WARNING} ms: '${rawTimestamp}'`);
 		// TODO: Age warning
 	}
 }
