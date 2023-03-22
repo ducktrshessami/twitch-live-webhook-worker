@@ -406,7 +406,7 @@ export interface BaseWebhookBody {
 export interface InvalidSubscriptionWebhookBody extends BaseWebhookBody {
     subscription: InvalidSubscription;
 }
-interface StreamOnlineWebhookBody extends BaseWebhookBody {
+export interface StreamOnlineWebhookBody extends BaseWebhookBody {
     subscription: StreamOnlineSubscription;
 }
 export interface StreamOnlineNotificationBody extends StreamOnlineWebhookBody {
@@ -415,7 +415,9 @@ export interface StreamOnlineNotificationBody extends StreamOnlineWebhookBody {
 export interface StreamOnlineCallbackVerificationBody extends StreamOnlineWebhookBody {
     challenge: string;
 }
+export type StreamOnlineRevocationBody = StreamOnlineWebhookBody;
 export type WebhookBody =
     InvalidSubscriptionWebhookBody |
     StreamOnlineNotificationBody |
-    StreamOnlineCallbackVerificationBody;
+    StreamOnlineCallbackVerificationBody |
+    StreamOnlineRevocationBody;

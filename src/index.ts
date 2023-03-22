@@ -5,7 +5,9 @@ import {
 	verifyRequest,
 	WebhookBody,
 	StreamOnlineCallbackVerificationBody,
-	StreamOnlineNotificationBody
+	StreamOnlineNotificationBody,
+	StreamOnlineRevocationBody,
+	StreamOnlineWebhookBody
 } from "./twitch";
 import { requestHeader } from "./utils";
 
@@ -25,12 +27,13 @@ export default {
 		}
 		checkAge(request, env);
 		const json: WebhookBody = JSON.parse(await body.text());
-		if (json.subscription.type !== SubscriptionType.StreamOnline) {
+		if (!isStreamOnlineBody(json)) {
 			return new Response(null, { status: 403 });
 		}
 		switch (request.headers.get(RequestHeaders.MessageType)) {
 			case NotificationType.Notification: return await handleNotification(<StreamOnlineNotificationBody>json);
 			case NotificationType.WebhookCallbackVerification: return handleChallenge(<StreamOnlineCallbackVerificationBody>json);
+			case NotificationType.Revocation: return await handleRevocation(json);
 			default: return new Response(null, { status: 400 });
 		}
 	},
@@ -45,6 +48,10 @@ function checkAge(request: Request, env: Env): void {
 	}
 }
 
+function isStreamOnlineBody(body: WebhookBody): body is StreamOnlineWebhookBody {
+	return body.subscription.type === SubscriptionType.StreamOnline;
+}
+
 async function handleNotification(body: StreamOnlineNotificationBody): Promise<Response> {
 	// TODO: Forward notification
 	return new Response(null, { status: 204 });
@@ -52,4 +59,9 @@ async function handleNotification(body: StreamOnlineNotificationBody): Promise<R
 
 function handleChallenge(body: StreamOnlineCallbackVerificationBody): Response {
 	return new Response(body.challenge, { status: 200 });
+}
+
+async function handleRevocation(body: StreamOnlineRevocationBody): Promise<Response> {
+	// TODO: Forward revocation
+	return new Response(null, { status: 204 });
 }
