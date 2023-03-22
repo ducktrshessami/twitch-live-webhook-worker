@@ -144,19 +144,36 @@ export function isStreamOnlineBody(body: WebhookBody): body is StreamOnlineWebho
     return body.subscription.type === SubscriptionType.StreamOnline;
 }
 
+async function authorizedSubscriptionRequest(
+    accessToken: string,
+    method: string,
+    options: AuthorizedSubscriptionRequestOptions
+): Promise<Response> {
+    const url = new URL(SUBSCRIPTION_ENDPOINT);
+    const headers: HeadersInit = { Authorization: `Bearer ${accessToken}` };
+    let body: BodyInit | null = null;
+    if (options.body) {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify(options.body);
+    }
+    if (options.query) {
+        url.search = options.query.toString();
+    }
+    return await fetch(url, {
+        method,
+        headers,
+        body
+    });
+}
+
 export async function subscribe(
     accessToken: string,
     broadcasterId: string,
     callbackEndpoint: string,
     secret: string
 ): Promise<boolean> {
-    const res = await fetch(SUBSCRIPTION_ENDPOINT, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
+    const res = await authorizedSubscriptionRequest(accessToken, "POST", {
+        body: {
             type: SubscriptionType.StreamOnline,
             version: API_VERSION,
             condition: { broadcaster_user_id: broadcasterId },
@@ -165,7 +182,7 @@ export async function subscribe(
                 callback: callbackEndpoint,
                 secret: secret
             }
-        } satisfies CreateStreamOnlineSubscriptionBody)
+        } satisfies CreateStreamOnlineSubscriptionBody
     });
     return res.status === 202;
 }
@@ -505,6 +522,11 @@ export interface GetEventSubsResponse extends BaseEventSubResponse {
     data: Array<ListedEventSubscription>;
     pagination: GetEventSubPagination;
 }
+
+type AuthorizedSubscriptionRequestOptions = {
+    body?: any,
+    query?: string | URLSearchParams
+};
 
 type CreateStreamOnlineSubscriptionBody = {
     type: `${SubscriptionType.StreamOnline}`;
