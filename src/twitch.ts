@@ -5,7 +5,9 @@ import {
     stringBuffer
 } from "./utils";
 
+export const API_VERSION = "1";
 const HMAC_PREFIX = "sha256=";
+const SUBSCRIPTION_ENDPOINT = "https://api.twitch.tv/helix/eventsub/subscriptions";
 
 export enum RequestHeaders {
     MessageId = "twitch-eventsub-message-id",
@@ -97,6 +99,11 @@ export enum StreamType {
     Rerun = "rerun"
 }
 
+export enum TransportMethod {
+    Webhook = "webhook",
+    Websocket = "websocket"
+}
+
 async function getKey(env: Env): Promise<CryptoKey> {
     return await crypto.subtle.importKey(
         "raw",
@@ -137,17 +144,43 @@ export function isStreamOnlineBody(body: WebhookBody): body is StreamOnlineWebho
     return body.subscription.type === SubscriptionType.StreamOnline;
 }
 
+export async function subscribe(
+    accessToken: string,
+    broadcasterId: string,
+    callbackEndpoint: string,
+    secret: string
+): Promise<boolean> {
+    const res = await fetch(SUBSCRIPTION_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+            type: SubscriptionType.StreamOnline,
+            version: API_VERSION,
+            condition: { broadcaster_user_id: broadcasterId },
+            transport: {
+                method: TransportMethod.Webhook,
+                callback: callbackEndpoint,
+                secret: secret
+            }
+        } satisfies CreateStreamOnlineSubscriptionBody)
+    });
+    return res.status === 202;
+}
+
 export type BroadcasterTargettedCondition = { broadcaster_user_id: string };
 export type ChannelFollowCondition = BroadcasterTargettedCondition & { moderator_user_id: string };
 export type ChannelRaidCondition = {
-    from_broadcaster_user_id: string;
-    to_broadcaster_user_id: string;
+    from_broadcaster_user_id?: string;
+    to_broadcaster_user_id?: string;
 };
-export type ChannelPointsCustomSpecificRewardCondition = BroadcasterTargettedCondition & { reward_id: string };
+export type ChannelPointsCustomSpecificRewardCondition = BroadcasterTargettedCondition & { reward_id?: string };
 export type DropEntitlementGrantCondition = {
     organization_id: string;
-    category_id: string;
-    campaign_id: string;
+    category_id?: string;
+    campaign_id?: string;
 };
 export type ExtensionBitsTransactionCreateCondition = { extension_client_id: string };
 export type UserAuthorizationCondition = { client_id: string };
@@ -428,3 +461,54 @@ export type WebhookBody =
     StreamOnlineNotificationBody |
     StreamOnlineCallbackVerificationBody |
     StreamOnlineRevocationBody;
+
+interface BaseSubscriptionTransport {
+    method: `${TransportMethod}`;
+    callback?: string;
+    secret?: string;
+    session_id?: string;
+}
+interface CreateWebhookSubscriptionTransportOptions extends BaseSubscriptionTransport {
+    method: `${TransportMethod.Webhook}`;
+    callback: string;
+    secret: string;
+    session_id?: never;
+}
+interface CreatedSubscriptionTransport extends BaseSubscriptionTransport {
+    connected_at?: string;
+}
+interface ListedSubscriptionTransport extends CreatedSubscriptionTransport {
+    disconnected_at?: string;
+}
+interface BaseEventSubscription {
+    id: string;
+    status: `${SubscriptionStatus}`;
+    type: `${SubscriptionType}`;
+    version: typeof API_VERSION;
+    condition: Condition;
+    created_at: string;
+    transport: CreatedSubscriptionTransport;
+    cost: number;
+}
+interface ListedEventSubscription extends BaseEventSubscription {
+    transport: ListedSubscriptionTransport;
+}
+interface BaseEventSubResponse {
+    data: Array<BaseEventSubscription>;
+    total: number;
+    total_cost: number;
+    max_total_cost: number;
+}
+type GetEventSubPagination = { cursor?: string };
+export type CreateEventSubResponse = BaseEventSubResponse;
+export interface GetEventSubsResponse extends BaseEventSubResponse {
+    data: Array<ListedEventSubscription>;
+    pagination: GetEventSubPagination;
+}
+
+type CreateStreamOnlineSubscriptionBody = {
+    type: `${SubscriptionType.StreamOnline}`;
+    version: typeof API_VERSION;
+    condition: StreamOnlineSubscription["condition"];
+    transport: CreateWebhookSubscriptionTransportOptions;
+};
