@@ -4,7 +4,8 @@ import {
 	SubscriptionType,
 	verifyRequest,
 	WebhookBody,
-	StreamOnlineCallbackVerificationBody
+	StreamOnlineCallbackVerificationBody,
+	StreamOnlineNotificationBody
 } from "./twitch";
 import { requestHeader } from "./utils";
 
@@ -28,7 +29,7 @@ export default {
 			return new Response(null, { status: 403 });
 		}
 		switch (request.headers.get(RequestHeaders.MessageType)) {
-			case NotificationType.Notification: return await handleNotification(request, body);
+			case NotificationType.Notification: return await handleNotification(<StreamOnlineNotificationBody>json);
 			case NotificationType.WebhookCallbackVerification: return handleChallenge(<StreamOnlineCallbackVerificationBody>json);
 			default: return new Response(null, { status: 400 });
 		}
@@ -44,7 +45,7 @@ function checkAge(request: Request, env: Env): void {
 	}
 }
 
-async function handleNotification(request: Request, body: Blob): Promise<Response> {
+async function handleNotification(body: StreamOnlineNotificationBody): Promise<Response> {
 	// TODO: Forward notification
 	return new Response(null, { status: 204 });
 }
