@@ -69,6 +69,14 @@ export enum SubscriptionType {
     UserUpdate = "user.update"
 }
 
+export enum StreamType {
+    Live = "live",
+    Playlist = "playlist",
+    WatchParty = "watch_party",
+    Premiere = "premiere",
+    Rerun = "rerun"
+}
+
 async function getKey(env: Env): Promise<CryptoKey> {
     return await crypto.subtle.importKey(
         "raw",
@@ -139,5 +147,15 @@ export type Subscription<T extends Condition = Condition> = {
     created_at: string;
 };
 
+export type StreamOnlineEvent = {
+    id: string;
+    broadcaster_user_id: string;
+    broadcaster_user_login: string;
+    broadcaster_user_name: string;
+    type: `${StreamType}`;
+    started_at: string;
+};
+
 export type BaseWebhookBody = { subscription: Subscription };
+export type StreamOnlineNotificationBody = BaseWebhookBody & { event: StreamOnlineEvent };
 export type WebhookCallbackVerificationBody = BaseWebhookBody & { challenge: string };
