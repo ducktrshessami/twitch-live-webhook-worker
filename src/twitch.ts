@@ -492,6 +492,7 @@ interface CreateWebhookSubscriptionTransportOptions extends BaseSubscriptionTran
     session_id?: never;
 }
 interface CreatedSubscriptionTransport extends BaseSubscriptionTransport {
+    secret?: never;
     connected_at?: string;
 }
 interface ListedSubscriptionTransport extends CreatedSubscriptionTransport {
