@@ -130,6 +130,10 @@ export async function verifyRequest(request: Request, body: Blob, env: Env): Pro
     );
 }
 
+export function isStreamOnlineBody(body: WebhookBody): body is StreamOnlineWebhookBody {
+    return body.subscription.type === SubscriptionType.StreamOnline;
+}
+
 export type BroadcasterTargettedCondition = { broadcaster_user_id: string };
 export type ChannelFollowCondition = BroadcasterTargettedCondition & { moderator_user_id: string };
 export type ChannelRaidCondition = {

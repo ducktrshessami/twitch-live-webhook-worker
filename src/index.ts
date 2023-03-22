@@ -1,13 +1,12 @@
 import {
 	NotificationType,
 	RequestHeaders,
-	SubscriptionType,
 	verifyRequest,
 	WebhookBody,
 	StreamOnlineCallbackVerificationBody,
 	StreamOnlineNotificationBody,
 	StreamOnlineRevocationBody,
-	StreamOnlineWebhookBody
+	isStreamOnlineBody
 } from "./twitch";
 import { requestHeader } from "./utils";
 
@@ -46,10 +45,6 @@ function checkAge(request: Request, env: Env): void {
 	if (age > TWITCH_AGE_WARNING) {
 		// TODO: Age warning
 	}
-}
-
-function isStreamOnlineBody(body: WebhookBody): body is StreamOnlineWebhookBody {
-	return body.subscription.type === SubscriptionType.StreamOnline;
 }
 
 async function handleNotification(body: StreamOnlineNotificationBody): Promise<Response> {
