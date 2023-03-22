@@ -69,6 +69,24 @@ export enum SubscriptionType {
     UserUpdate = "user.update"
 }
 
+export enum SubscriptionStatus {
+    Enabled = "enabled",
+    WebhookCallbackVerificationPending = "webhook_callback_verification_pending",
+    WebhookCallbackVerificationFailed = "webhook_callback_verification_failed",
+    NotificationFailuresExceeded = "notification_failures_exceeded",
+    AuthorizationRevoked = "authorization_revoked",
+    ModeratorRemoved = "moderator_removed",
+    UserRemoved = "user_removed",
+    VersionRemoved = "version_removed",
+    WebsocketDisconnected = "websocket_disconnected",
+    WebsocketFailedPingPong = "websocket_failed_ping_pong",
+    WebsocketReceivedInboundTraffic = "websocket_received_inbound_traffic",
+    WebsocketConnectionUnused = "websocket_connection_unused",
+    WebsocketInternalError = "websocket_internal_error",
+    WebsocketNetworkTimeout = "websocket_network_timeout",
+    WebsocketNetworkError = "websocket_network_error"
+}
+
 export enum StreamType {
     Live = "live",
     Playlist = "playlist",
@@ -141,7 +159,7 @@ export interface BaseSubscription {
     id: string;
     type: `${SubscriptionType}`;
     version: string;
-    status: string;
+    status: `${SubscriptionStatus}`;
     cost: number;
     condition: object;
     created_at: string;
