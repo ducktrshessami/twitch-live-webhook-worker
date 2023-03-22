@@ -1,10 +1,10 @@
 import {
-	BaseWebhookBody,
 	NotificationType,
 	RequestHeaders,
 	SubscriptionType,
 	verifyRequest,
-	WebhookCallbackVerificationBody
+	WebhookBody,
+	StreamOnlineCallbackVerificationBody
 } from "./twitch";
 import { requestHeader } from "./utils";
 
@@ -23,13 +23,13 @@ export default {
 			return new Response(null, { status: 401 });
 		}
 		checkAge(request, env);
-		const json: BaseWebhookBody = JSON.parse(await body.text());
+		const json: WebhookBody = JSON.parse(await body.text());
 		if (json.subscription.type !== SubscriptionType.StreamOnline) {
 			return new Response(null, { status: 403 });
 		}
 		switch (request.headers.get(RequestHeaders.MessageType)) {
 			case NotificationType.Notification: return await handleNotification(request, body);
-			case NotificationType.WebhookCallbackVerification: return handleChallenge(<WebhookCallbackVerificationBody>json);
+			case NotificationType.WebhookCallbackVerification: return handleChallenge(<StreamOnlineCallbackVerificationBody>json);
 			default: return new Response(null, { status: 400 });
 		}
 	},
@@ -49,6 +49,6 @@ async function handleNotification(request: Request, body: Blob): Promise<Respons
 	return new Response(null, { status: 204 });
 }
 
-function handleChallenge(body: WebhookCallbackVerificationBody): Response {
+function handleChallenge(body: StreamOnlineCallbackVerificationBody): Response {
 	return new Response(body.challenge, { status: 200 });
 }

@@ -112,13 +112,13 @@ export async function verifyRequest(request: Request, body: Blob, env: Env): Pro
     );
 }
 
-export type BaseCondition = { broadcaster_user_id: string };
-export type ChannelFollowCondition = BaseCondition & { moderator_user_id: string };
+export type BroadcasterTargettedCondition = { broadcaster_user_id: string };
+export type ChannelFollowCondition = BroadcasterTargettedCondition & { moderator_user_id: string };
 export type ChannelRaidCondition = {
     from_broadcaster_user_id: string;
     to_broadcaster_user_id: string;
 };
-export type ChannelPointsCustomSpecificRewardCondition = BaseCondition & { reward_id: string };
+export type ChannelPointsCustomSpecificRewardCondition = BroadcasterTargettedCondition & { reward_id: string };
 export type DropEntitlementGrantCondition = {
     organization_id: string;
     category_id: string;
@@ -128,7 +128,7 @@ export type ExtensionBitsTransactionCreateCondition = { extension_client_id: str
 export type UserAuthorizationCondition = { client_id: string };
 export type UserUpdateCondition = { user_id: string };
 export type Condition =
-    BaseCondition |
+    BroadcasterTargettedCondition |
     ChannelFollowCondition |
     ChannelRaidCondition |
     ChannelPointsCustomSpecificRewardCondition |
@@ -137,15 +137,241 @@ export type Condition =
     UserAuthorizationCondition |
     UserUpdateCondition;
 
-export type Subscription<T extends Condition = Condition> = {
+export interface BaseSubscription {
     id: string;
     type: `${SubscriptionType}`;
     version: string;
     status: string;
     cost: number;
-    condition: T;
+    condition: object;
     created_at: string;
-};
+}
+export interface ChannelUpdateSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelUpdate}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelFollowSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelFollow}`;
+    condition: ChannelFollowCondition;
+}
+export interface ChannelSubscribeSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelSubscribe}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelSubscriptionEndSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelSubscriptionEnd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelSubscriptionGiftSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelSubscriptionGift}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelSubscriptionMessageSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelSubscriptionMessage}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelCheerSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelCheer}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelRaidSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelRaid}`;
+    condition: ChannelRaidCondition;
+}
+export interface ChannelBanSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelBan}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelUnbanSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelUnban}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelModeratorAddSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelModeratorAdd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelModeratorRemoveSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelModeratorRemove}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPointsCustomRewardAddSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPointsCustomRewardAdd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPointsCustomRewardUpdateSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPointsCustomRewardUpdate}`;
+    condition: ChannelPointsCustomSpecificRewardCondition;
+}
+export interface ChannelPointsCustomRewardRemoveSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPointsCustomRewardRemove}`;
+    condition: ChannelPointsCustomSpecificRewardCondition;
+}
+export interface ChannelPointsCustomRewardRedemptionAddSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPointsCustomRewardRedemptionAdd}`;
+    condition: ChannelPointsCustomSpecificRewardCondition;
+}
+export interface ChannelPointsCustomRewardRedemptionUpdateSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPointsCustomRewardRedemptionUpdate}`;
+    condition: ChannelPointsCustomSpecificRewardCondition;
+}
+export interface ChannelPollBeginSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPollBegin}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPollProgressSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPollProgress}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPollEndSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPollEnd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPredictionBeginSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPredictionBegin}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPredictionProgressSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPredictionProgress}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPredictionLockSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPredictionLock}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ChannelPredictionEndSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ChannelPredictionEnd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface CharityDonationSubscription extends BaseSubscription {
+    type: `${SubscriptionType.CharityDonation}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface CharityCampaignStartSubscription extends BaseSubscription {
+    type: `${SubscriptionType.CharityCampaignStart}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface CharityCampaignProgressSubscription extends BaseSubscription {
+    type: `${SubscriptionType.CharityCampaignProgress}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface CharityCampaignStopSubscription extends BaseSubscription {
+    type: `${SubscriptionType.CharityCampaignStop}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface DropEntitlementGrantSubscription extends BaseSubscription {
+    type: `${SubscriptionType.DropEntitlementGrant}`;
+    condition: DropEntitlementGrantCondition;
+}
+export interface ExtensionBitsTransactionCreateSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ExtensionBitsTransactionCreate}`;
+    condition: ExtensionBitsTransactionCreateCondition;
+}
+export interface GoalBeginSubscription extends BaseSubscription {
+    type: `${SubscriptionType.GoalBegin}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface GoalProgressSubscription extends BaseSubscription {
+    type: `${SubscriptionType.GoalProgress}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface GoalEndSubscription extends BaseSubscription {
+    type: `${SubscriptionType.GoalEnd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface HypeTrainBeginSubscription extends BaseSubscription {
+    type: `${SubscriptionType.HypeTrainBegin}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface HypeTrainProgressSubscription extends BaseSubscription {
+    type: `${SubscriptionType.HypeTrainProgress}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface HypeTrainEndSubscription extends BaseSubscription {
+    type: `${SubscriptionType.HypeTrainEnd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ShieldModeBeginSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ShieldModeBegin}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ShieldModeEndSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ShieldModeEnd}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ShoutoutCreateSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ShoutoutCreate}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface ShoutoutReceivedSubscription extends BaseSubscription {
+    type: `${SubscriptionType.ShoutoutReceived}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface StreamOnlineSubscription extends BaseSubscription {
+    type: `${SubscriptionType.StreamOnline}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface StreamOfflineSubscription extends BaseSubscription {
+    type: `${SubscriptionType.StreamOffline}`;
+    condition: BroadcasterTargettedCondition;
+}
+export interface UserAuthorizationGrantSubscription extends BaseSubscription {
+    type: `${SubscriptionType.UserAuthorizationGrant}`;
+    condition: UserAuthorizationCondition;
+}
+export interface UserAuthorizationRevokeSubscription extends BaseSubscription {
+    type: `${SubscriptionType.UserAuthorizationRevoke}`;
+    condition: UserAuthorizationCondition;
+}
+export interface UserUpdateSubscription extends BaseSubscription {
+    type: `${SubscriptionType.UserUpdate}`;
+    condition: UserUpdateCondition;
+}
+export type InvalidSubscription =
+    ChannelUpdateSubscription |
+    ChannelFollowSubscription |
+    ChannelSubscribeSubscription |
+    ChannelSubscriptionEndSubscription |
+    ChannelSubscriptionGiftSubscription |
+    ChannelSubscriptionMessageSubscription |
+    ChannelCheerSubscription |
+    ChannelRaidSubscription |
+    ChannelBanSubscription |
+    ChannelUnbanSubscription |
+    ChannelModeratorAddSubscription |
+    ChannelModeratorRemoveSubscription |
+    ChannelPointsCustomRewardAddSubscription |
+    ChannelPointsCustomRewardUpdateSubscription |
+    ChannelPointsCustomRewardRemoveSubscription |
+    ChannelPointsCustomRewardRedemptionAddSubscription |
+    ChannelPointsCustomRewardRedemptionUpdateSubscription |
+    ChannelPollBeginSubscription |
+    ChannelPollProgressSubscription |
+    ChannelPollEndSubscription |
+    ChannelPredictionBeginSubscription |
+    ChannelPredictionProgressSubscription |
+    ChannelPredictionLockSubscription |
+    ChannelPredictionEndSubscription |
+    CharityDonationSubscription |
+    CharityCampaignStartSubscription |
+    CharityCampaignProgressSubscription |
+    CharityCampaignStopSubscription |
+    DropEntitlementGrantSubscription |
+    ExtensionBitsTransactionCreateSubscription |
+    GoalBeginSubscription |
+    GoalProgressSubscription |
+    GoalEndSubscription |
+    HypeTrainBeginSubscription |
+    HypeTrainProgressSubscription |
+    HypeTrainEndSubscription |
+    ShieldModeBeginSubscription |
+    ShieldModeEndSubscription |
+    ShoutoutCreateSubscription |
+    ShoutoutReceivedSubscription |
+    StreamOfflineSubscription |
+    UserAuthorizationGrantSubscription |
+    UserAuthorizationRevokeSubscription |
+    UserUpdateSubscription;
+export type Subscription = InvalidSubscription | StreamOnlineSubscription;
 
 export type StreamOnlineEvent = {
     id: string;
@@ -156,6 +382,22 @@ export type StreamOnlineEvent = {
     started_at: string;
 };
 
-export type BaseWebhookBody = { subscription: Subscription };
-export type StreamOnlineNotificationBody = BaseWebhookBody & { event: StreamOnlineEvent };
-export type WebhookCallbackVerificationBody = BaseWebhookBody & { challenge: string };
+export interface BaseWebhookBody {
+    subscription: Subscription;
+}
+export interface InvalidSubscriptionWebhookBody extends BaseWebhookBody {
+    subscription: InvalidSubscription;
+}
+interface StreamOnlineWebhookBody extends BaseWebhookBody {
+    subscription: StreamOnlineSubscription;
+}
+export interface StreamOnlineNotificationBody extends StreamOnlineWebhookBody {
+    event: StreamOnlineEvent;
+}
+export interface StreamOnlineCallbackVerificationBody extends StreamOnlineWebhookBody {
+    challenge: string;
+}
+export type WebhookBody =
+    InvalidSubscriptionWebhookBody |
+    StreamOnlineNotificationBody |
+    StreamOnlineCallbackVerificationBody;
