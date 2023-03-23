@@ -1,10 +1,10 @@
-import { Env } from ".";
-import { FetchError } from "./error";
+import { Env } from "./index.js";
+import { FetchError } from "./error.js";
 import {
     hexBuffer,
     requestHeader,
     stringBuffer
-} from "./utils";
+} from "./utils.js";
 
 export const API_VERSION = "1";
 const HMAC_PREFIX = "sha256=";
