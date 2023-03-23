@@ -204,6 +204,13 @@ export async function getSubscriptions(accessToken: string, options: GetSubscrip
     }
 }
 
+export async function deleteSubscription(accessToken: string, subscriptionId: string): Promise<void> {
+    const res = await authorizedSubscriptionRequest(accessToken, "DELETE", { query: new URLSearchParams({ id: subscriptionId }) });
+    if (res.status !== 204) {
+        throw new FetchError(res);
+    }
+}
+
 export type BroadcasterTargettedCondition = { broadcaster_user_id: string };
 export type ChannelFollowCondition = BroadcasterTargettedCondition & { moderator_user_id: string };
 export type ChannelRaidCondition = {
