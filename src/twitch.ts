@@ -8,6 +8,10 @@ import {
 
 export const API_VERSION = "1";
 const HMAC_PREFIX = "sha256=";
+const OAUTH_GRANT_TYPE = "client_credentials";
+const OAUTH_BASE = "https://id.twitch.tv/oauth2";
+const OAUTH_TOKEN_ENDPOINT = OAUTH_BASE + "/token";
+const OAUTH_REVOKE_ENDPOINT = OAUTH_BASE + "/revoke";
 const SUBSCRIPTION_ENDPOINT = "https://api.twitch.tv/helix/eventsub/subscriptions";
 
 export enum RequestHeaders {
@@ -143,6 +147,37 @@ export async function verifyRequest(request: Request, body: Blob, env: Env): Pro
 
 export function isStreamOnlineBody(body: WebhookBody): body is StreamOnlineWebhookBody {
     return body.subscription.type === SubscriptionType.StreamOnline;
+}
+
+async function oauthRequest(url: string, body: any): Promise<Response> {
+    const query = new URLSearchParams(body);
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: query.toString()
+    });
+    if (res.status === 200) {
+        return res;
+    }
+    else {
+        throw new FetchError(res);
+    }
+}
+
+export async function getClientCredentials(clientId: string, clientSecret: string): Promise<ClientCredentialGrantResponse> {
+    const res = await oauthRequest(OAUTH_TOKEN_ENDPOINT, {
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: OAUTH_GRANT_TYPE
+    } satisfies ClientCredentialGrantQueryPairs);
+    return await res.json();
+}
+
+export async function revokeClientCredentials(clientId: string, token: string): Promise<void> {
+    await oauthRequest(OAUTH_REVOKE_ENDPOINT, {
+        client_id: clientId,
+        token
+    } satisfies ClientCredentialRevokeQueryPairs);
 }
 
 async function authorizedSubscriptionRequest(
@@ -566,4 +601,21 @@ export type GetSubscriptionsOptions = {
     type?: `${SubscriptionType}`;
     user_id?: string;
     after?: Cursor;
+};
+
+type ClientCredentialGrantQueryPairs = {
+    client_id: string;
+    client_secret: string;
+    grant_type: typeof OAUTH_GRANT_TYPE;
+};
+
+type ClientCredentialGrantResponse = {
+    access_token: string;
+    expires_in: number;
+    token_type: string;
+};
+
+type ClientCredentialRevokeQueryPairs = {
+    client_id: string;
+    token: string;
 };
