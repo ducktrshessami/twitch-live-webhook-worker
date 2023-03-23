@@ -185,7 +185,13 @@ export async function subscribe(
             }
         } satisfies CreateStreamOnlineSubscriptionBody
     });
-    return res.status === 202;
+    if (res.status === 202) {
+        const json: BaseEventSubResponse = await res.json();
+        return json.data[0].status === SubscriptionStatus.Enabled;
+    }
+    else {
+        throw new FetchError(res);
+    }
 }
 
 export async function getSubscriptions(accessToken: string, options: GetSubscriptionsOptions = {}): Promise<GetEventSubsResponse> {
