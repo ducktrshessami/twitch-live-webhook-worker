@@ -274,7 +274,7 @@ export async function subscribe(
     broadcasterId: string,
     callbackEndpoint: string,
     secret: string
-): Promise<boolean> {
+): Promise<void> {
     const res = await authorizedRequest(
         clientId,
         accessToken,
@@ -293,11 +293,7 @@ export async function subscribe(
             } satisfies CreateStreamOnlineSubscriptionBody
         }
     );
-    if (res.status === 202) {
-        const json: BaseEventSubResponse = await res.json();
-        return json.data[0].status === SubscriptionStatus.Enabled;
-    }
-    else {
+    if (res.status !== 202) {
         throw new FetchError(res);
     }
 }
