@@ -1,4 +1,5 @@
 import { Env } from ".";
+import { FetchError } from "./error";
 import {
     hexBuffer,
     requestHeader,
@@ -185,6 +186,16 @@ export async function subscribe(
         } satisfies CreateStreamOnlineSubscriptionBody
     });
     return res.status === 202;
+}
+
+export async function getSubscriptions(accessToken: string, options: GetSubscriptionsOptions = {}): Promise<GetEventSubsResponse> {
+    const res = await authorizedSubscriptionRequest(accessToken, "GET", { query: new URLSearchParams(options) });
+    if (res.status === 200) {
+        return await res.json();
+    }
+    else {
+        throw new FetchError(res);
+    }
 }
 
 export type BroadcasterTargettedCondition = { broadcaster_user_id: string };
@@ -517,7 +528,8 @@ interface BaseEventSubResponse {
     total_cost: number;
     max_total_cost: number;
 }
-type GetEventSubPagination = { cursor?: string };
+type Cursor = string;
+type GetEventSubPagination = { cursor?: Cursor };
 export type CreateEventSubResponse = BaseEventSubResponse;
 export interface GetEventSubsResponse extends BaseEventSubResponse {
     data: Array<ListedEventSubscription>;
@@ -534,4 +546,11 @@ type CreateStreamOnlineSubscriptionBody = {
     version: typeof API_VERSION;
     condition: StreamOnlineSubscription["condition"];
     transport: CreateWebhookSubscriptionTransportOptions;
+};
+
+export type GetSubscriptionsOptions = {
+    status?: `${SubscriptionStatus}`;
+    type?: `${SubscriptionType}`;
+    user_id?: string;
+    after?: Cursor;
 };
