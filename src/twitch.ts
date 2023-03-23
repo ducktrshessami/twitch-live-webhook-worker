@@ -656,7 +656,7 @@ interface BaseEventSubscription {
     transport: CreatedSubscriptionTransport;
     cost: number;
 }
-interface ListedEventSubscription extends BaseEventSubscription {
+export interface ListedEventSubscription extends BaseEventSubscription {
     transport: ListedSubscriptionTransport;
 }
 interface BaseEventSubResponse {
