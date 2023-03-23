@@ -9,10 +9,14 @@ import {
 export const API_VERSION = "1";
 const HMAC_PREFIX = "sha256=";
 const OAUTH_GRANT_TYPE = "client_credentials";
-const OAUTH_BASE = "https://id.twitch.tv/oauth2";
-const OAUTH_TOKEN_ENDPOINT = OAUTH_BASE + "/token";
-const OAUTH_REVOKE_ENDPOINT = OAUTH_BASE + "/revoke";
-const SUBSCRIPTION_ENDPOINT = "https://api.twitch.tv/helix/eventsub/subscriptions";
+
+export const OAUTH_BASE_ENDPOINT = "https://id.twitch.tv/oauth2";
+const OAUTH_TOKEN_ENDPOINT = OAUTH_BASE_ENDPOINT + "/token";
+const OAUTH_REVOKE_ENDPOINT = OAUTH_BASE_ENDPOINT + "/revoke";
+
+export const API_BASE_ENDPOINT = "https://api.twitch.tv/helix";
+const GET_USERS_ENDPOINT = API_BASE_ENDPOINT + "/users";
+const SUBSCRIPTION_ENDPOINT = API_BASE_ENDPOINT + "/eventsub/subscriptions";
 
 export enum RequestHeaders {
     MessageId = "twitch-eventsub-message-id",
@@ -109,6 +113,19 @@ export enum TransportMethod {
     Websocket = "websocket"
 }
 
+export enum UserType {
+    Admin = "admin",
+    GlobalMod = "global_mod",
+    Staff = "staff",
+    Normal = ""
+}
+
+export enum BroadcasterType {
+    Affiliate = "affiliate",
+    Partner = "partner",
+    Normal = ""
+}
+
 async function getKey(env: Env): Promise<CryptoKey> {
     return await crypto.subtle.importKey(
         "raw",
@@ -201,12 +218,13 @@ export async function authorize(
     }
 }
 
-async function authorizedSubscriptionRequest(
+async function authorizedRequest(
     accessToken: string,
+    url: string,
     method: string,
     options: AuthorizedSubscriptionRequestOptions
 ): Promise<Response> {
-    const url = new URL(SUBSCRIPTION_ENDPOINT);
+    const target = new URL(url);
     const headers: HeadersInit = { Authorization: `Bearer ${accessToken}` };
     let body: BodyInit | null = null;
     if (options.body) {
@@ -214,13 +232,31 @@ async function authorizedSubscriptionRequest(
         body = JSON.stringify(options.body);
     }
     if (options.query) {
-        url.search = options.query.toString();
+        target.search = options.query.toString();
     }
-    return await fetch(url, {
+    return await fetch(target, {
         method,
         headers,
         body
     });
+}
+
+export async function getUsers(accessToken: string, options: GetUsersOptions): Promise<GetUsersResponse> {
+    const query = new URLSearchParams();
+    options.ids?.forEach(id => query.append("id", id));
+    options.logins?.forEach(login => query.append("login", login));
+    const res = await authorizedRequest(
+        accessToken,
+        GET_USERS_ENDPOINT,
+        "GET",
+        { query }
+    );
+    if (res.status === 200) {
+        return await res.json();
+    }
+    else {
+        throw new FetchError(res);
+    }
 }
 
 export async function subscribe(
@@ -229,18 +265,23 @@ export async function subscribe(
     callbackEndpoint: string,
     secret: string
 ): Promise<boolean> {
-    const res = await authorizedSubscriptionRequest(accessToken, "POST", {
-        body: {
-            type: SubscriptionType.StreamOnline,
-            version: API_VERSION,
-            condition: { broadcaster_user_id: broadcasterId },
-            transport: {
-                method: TransportMethod.Webhook,
-                callback: callbackEndpoint,
-                secret: secret
-            }
-        } satisfies CreateStreamOnlineSubscriptionBody
-    });
+    const res = await authorizedRequest(
+        accessToken,
+        SUBSCRIPTION_ENDPOINT,
+        "POST",
+        {
+            body: {
+                type: SubscriptionType.StreamOnline,
+                version: API_VERSION,
+                condition: { broadcaster_user_id: broadcasterId },
+                transport: {
+                    method: TransportMethod.Webhook,
+                    callback: callbackEndpoint,
+                    secret: secret
+                }
+            } satisfies CreateStreamOnlineSubscriptionBody
+        }
+    );
     if (res.status === 202) {
         const json: BaseEventSubResponse = await res.json();
         return json.data[0].status === SubscriptionStatus.Enabled;
@@ -251,7 +292,12 @@ export async function subscribe(
 }
 
 export async function getSubscriptions(accessToken: string, options: GetSubscriptionsOptions = {}): Promise<GetEventSubsResponse> {
-    const res = await authorizedSubscriptionRequest(accessToken, "GET", { query: new URLSearchParams(options) });
+    const res = await authorizedRequest(
+        accessToken,
+        SUBSCRIPTION_ENDPOINT,
+        "GET",
+        { query: new URLSearchParams(options) }
+    );
     if (res.status === 200) {
         return await res.json();
     }
@@ -261,7 +307,12 @@ export async function getSubscriptions(accessToken: string, options: GetSubscrip
 }
 
 export async function deleteSubscription(accessToken: string, subscriptionId: string): Promise<void> {
-    const res = await authorizedSubscriptionRequest(accessToken, "DELETE", { query: new URLSearchParams({ id: subscriptionId }) });
+    const res = await authorizedRequest(
+        accessToken,
+        SUBSCRIPTION_ENDPOINT,
+        "DELETE",
+        { query: new URLSearchParams({ id: subscriptionId }) }
+    );
     if (res.status !== 204) {
         throw new FetchError(res);
     }
@@ -640,3 +691,23 @@ type ClientCredentialRevokeQueryPairs = {
     client_id: string;
     token: string;
 };
+
+type GetUsersOptions = {
+    ids?: Array<string>;
+    logins?: Array<string>;
+};
+
+type User = {
+    id: string;
+    login: string;
+    display_name: string;
+    type: `${UserType}`;
+    broadcaster_type: `${BroadcasterType}`;
+    description: string;
+    profile_image_url: string;
+    offline_image_url: string;
+    email?: string;
+    created_at: string;
+};
+
+type GetUsersResponse = { data: Array<User> };
