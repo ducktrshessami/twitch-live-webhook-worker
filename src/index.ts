@@ -20,21 +20,26 @@ export default {
         request: Request,
         env: Env
     ): Promise<Response> {
-        const body = await request.blob();
-        if (!(await verifyRequest(request, body, env))) {
-            return new Response(null, { status: 401 });
+        try {
+            const body = await request.blob();
+            if (!(await verifyRequest(request, body, env))) {
+                return new Response(null, { status: 401 });
+            }
+            checkAge(request, env);
+            const json: WebhookBody = JSON.parse(await body.text());
+            if (!isStreamOnlineBody(json)) {
+                return new Response(null, { status: 403 });
+            }
+            switch (request.headers.get(RequestHeaders.MessageType)) {
+                case NotificationType.Notification: return await handleNotification(<StreamOnlineNotificationBody>json);
+                case NotificationType.WebhookCallbackVerification: return handleChallenge(<StreamOnlineCallbackVerificationBody>json);
+                case NotificationType.Revocation: return await handleRevocation(json);
+            }
         }
-        checkAge(request, env);
-        const json: WebhookBody = JSON.parse(await body.text());
-        if (!isStreamOnlineBody(json)) {
-            return new Response(null, { status: 403 });
+        catch (err) {
+            console.error(err);
         }
-        switch (request.headers.get(RequestHeaders.MessageType)) {
-            case NotificationType.Notification: return await handleNotification(<StreamOnlineNotificationBody>json);
-            case NotificationType.WebhookCallbackVerification: return handleChallenge(<StreamOnlineCallbackVerificationBody>json);
-            case NotificationType.Revocation: return await handleRevocation(json);
-            default: return new Response(null, { status: 400 });
-        }
+        return new Response(null, { status: 400 });
     },
 };
 
