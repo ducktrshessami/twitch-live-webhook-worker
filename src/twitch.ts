@@ -219,13 +219,17 @@ export async function authorize(
 }
 
 async function authorizedRequest(
+    clientId: string,
     accessToken: string,
     url: string,
     method: string,
     options: AuthorizedSubscriptionRequestOptions
 ): Promise<Response> {
     const target = new URL(url);
-    const headers: HeadersInit = { Authorization: `Bearer ${accessToken}` };
+    const headers: HeadersInit = {
+        "Client-Id": clientId,
+        Authorization: `Bearer ${accessToken}`
+    };
     let body: BodyInit | null = null;
     if (options.body) {
         headers["Content-Type"] = "application/json";
@@ -241,11 +245,16 @@ async function authorizedRequest(
     });
 }
 
-export async function getUsers(accessToken: string, options: GetUsersOptions): Promise<GetUsersResponse> {
+export async function getUsers(
+    clientId: string,
+    accessToken: string,
+    options: GetUsersOptions
+): Promise<GetUsersResponse> {
     const query = new URLSearchParams();
     options.ids?.forEach(id => query.append("id", id));
     options.logins?.forEach(login => query.append("login", login));
     const res = await authorizedRequest(
+        clientId,
         accessToken,
         GET_USERS_ENDPOINT,
         "GET",
@@ -260,12 +269,14 @@ export async function getUsers(accessToken: string, options: GetUsersOptions): P
 }
 
 export async function subscribe(
+    clientId: string,
     accessToken: string,
     broadcasterId: string,
     callbackEndpoint: string,
     secret: string
 ): Promise<boolean> {
     const res = await authorizedRequest(
+        clientId,
         accessToken,
         SUBSCRIPTION_ENDPOINT,
         "POST",
@@ -291,8 +302,13 @@ export async function subscribe(
     }
 }
 
-export async function getSubscriptions(accessToken: string, options: GetSubscriptionsOptions = {}): Promise<GetEventSubsResponse> {
+export async function getSubscriptions(
+    clientId: string,
+    accessToken: string,
+    options: GetSubscriptionsOptions = {}
+): Promise<GetEventSubsResponse> {
     const res = await authorizedRequest(
+        clientId,
         accessToken,
         SUBSCRIPTION_ENDPOINT,
         "GET",
@@ -306,8 +322,13 @@ export async function getSubscriptions(accessToken: string, options: GetSubscrip
     }
 }
 
-export async function deleteSubscription(accessToken: string, subscriptionId: string): Promise<void> {
+export async function deleteSubscription(
+    clientId: string,
+    accessToken: string,
+    subscriptionId: string
+): Promise<void> {
     const res = await authorizedRequest(
+        clientId,
         accessToken,
         SUBSCRIPTION_ENDPOINT,
         "DELETE",

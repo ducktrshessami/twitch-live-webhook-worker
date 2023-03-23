@@ -9,10 +9,15 @@ if (!input.confirm) {
 }
 
 await authorize(input.clientId, input.clientSecret, async token => {
-    const users = await getUsers(token, { logins: [input.broadcasterName] });
+    const users = await getUsers(
+        input.clientId,
+        token,
+        { logins: [input.broadcasterName] }
+    );
     if (
         users.data.length &&
         await subscribe(
+            input.clientId,
             token,
             users.data[0].id,
             input.callback,
