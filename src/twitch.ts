@@ -180,6 +180,27 @@ export async function revokeClientCredentials(clientId: string, token: string): 
     } satisfies ClientCredentialRevokeQueryPairs);
 }
 
+export async function authorize(
+    clientId: string,
+    clientSecret: string,
+    fn: (accessToken: string) => void | Promise<void>
+): Promise<void> {
+    let error: any;
+    const { access_token } = await getClientCredentials(clientId, clientSecret);
+    try {
+        await fn(access_token);
+    }
+    catch (err) {
+        error = err;
+    }
+    finally {
+        await revokeClientCredentials(clientId, access_token);
+        if (error) {
+            throw error;
+        }
+    }
+}
+
 async function authorizedSubscriptionRequest(
     accessToken: string,
     method: string,
