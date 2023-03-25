@@ -11,7 +11,7 @@ import {
 import { requestHeader } from "./utils";
 
 export interface Env {
-    TWITCH_SECRET: string;
+    TWITCH_CLIENT_SECRET: string;
     TWITCH_AGE_WARNING?: string;
 }
 
@@ -23,7 +23,7 @@ export default {
     ): Promise<Response> {
         try {
             const body = await request.blob();
-            if (!(await verifyRequest(env.TWITCH_SECRET, request, body))) {
+            if (!(await verifyRequest(env.TWITCH_CLIENT_SECRET, request, body))) {
                 return new Response(null, { status: 401 });
             }
             checkAge(request, env);
