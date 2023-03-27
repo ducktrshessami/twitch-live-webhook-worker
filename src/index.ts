@@ -32,9 +32,9 @@ export default {
                 return new Response(null, { status: 403 });
             }
             switch (request.headers.get(RequestHeaders.MessageType)) {
-                case NotificationType.Notification: return await handleNotification(<StreamOnlineNotificationBody>json);
-                case NotificationType.WebhookCallbackVerification: return handleChallenge(<StreamOnlineCallbackVerificationBody>json);
-                case NotificationType.Revocation: return await handleRevocation(json);
+                case NotificationType.Notification: return await handleNotification(ctx, <StreamOnlineNotificationBody>json);
+                case NotificationType.WebhookCallbackVerification: return handleChallenge(ctx, <StreamOnlineCallbackVerificationBody>json);
+                case NotificationType.Revocation: return await handleRevocation(ctx, json);
             }
         }
         catch (err) {
@@ -56,16 +56,16 @@ function checkAge(request: Request, env: Env): void {
     }
 }
 
-async function handleNotification(body: StreamOnlineNotificationBody): Promise<Response> {
+async function handleNotification(ctx: ExecutionContext, body: StreamOnlineNotificationBody): Promise<Response> {
     // TODO: Forward notification
     return new Response(null, { status: 204 });
 }
 
-function handleChallenge(body: StreamOnlineCallbackVerificationBody): Response {
+function handleChallenge(ctx: ExecutionContext, body: StreamOnlineCallbackVerificationBody): Response {
     return new Response(body.challenge, { status: 200 });
 }
 
-async function handleRevocation(body: StreamOnlineRevocationBody): Promise<Response> {
+async function handleRevocation(ctx: ExecutionContext, body: StreamOnlineRevocationBody): Promise<Response> {
     // TODO: Forward revocation
     return new Response(null, { status: 204 });
 }
