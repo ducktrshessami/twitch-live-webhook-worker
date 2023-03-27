@@ -1,13 +1,13 @@
 import {
     NotificationType,
     RequestHeaders,
-    verifyRequest,
-    WebhookBody,
     StreamOnlineCallbackVerificationBody,
     StreamOnlineNotificationBody,
     StreamOnlineRevocationBody,
+    WebhookBody,
     isStreamOnlineBody
-} from "./twitch";
+} from "twitch-eventsub-types";
+import { verifyRequest } from "./twitch";
 import { requestHeader } from "./utils";
 
 export interface Env {

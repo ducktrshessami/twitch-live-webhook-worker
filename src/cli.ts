@@ -7,7 +7,7 @@ import {
     StreamOnlineSubscription,
     SubscriptionType,
     TransportMethod
-} from "./twitch.js";
+} from "twitch-eventsub-types";
 
 function validate(input: string): boolean {
     return !!input.trim();
