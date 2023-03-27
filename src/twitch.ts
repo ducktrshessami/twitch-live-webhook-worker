@@ -1,4 +1,4 @@
-import { HMAC_PREFIX, RequestHeaders } from "twitch-eventsub-types";
+import { HMAC_PREFIX, RequestHeaders } from "twitch-eventsub-utils";
 import {
     hexBuffer,
     requestHeader,

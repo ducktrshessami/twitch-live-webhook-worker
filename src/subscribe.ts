@@ -3,7 +3,7 @@ import {
     authorize,
     getUsers,
     subscribe
-} from "twitch-eventsub-types";
+} from "twitch-eventsub-utils";
 import { SubscribeQuestions } from "./cli.js";
 
 const input = await inquirer.prompt(SubscribeQuestions);

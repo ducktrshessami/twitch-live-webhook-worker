@@ -6,7 +6,7 @@ import {
     StreamOnlineRevocationBody,
     WebhookBody,
     isStreamOnlineBody
-} from "twitch-eventsub-types";
+} from "twitch-eventsub-utils";
 import { verifyRequest } from "./twitch";
 import { requestHeader } from "./utils";
 

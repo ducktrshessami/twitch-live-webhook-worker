@@ -6,7 +6,7 @@ import {
     authorize,
     deleteSubscription,
     getSubscriptions
-} from "twitch-eventsub-types";
+} from "twitch-eventsub-utils";
 import { PreUnsubscribeQuestions, createUnsubscribeQuestions } from "./cli.js";
 
 const authInput = await inquirer.prompt(PreUnsubscribeQuestions);
